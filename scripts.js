@@ -10,6 +10,8 @@ const saveToast = document.getElementById("saveToast");
 
 const SAVE_KEY = "coffeeClickerSave";
 
+let intervaloGuardar = 300000;
+
 let dinero = 0;
 let revivirPrecio = 1000;
 
@@ -76,7 +78,7 @@ setInterval(generarGranosAutomaticos, 1000);
 setInterval(ganarDinero, 1000);
 setInterval(() =>{
     guardarPartida(true);
-}, 15000);
+}, intervaloGuardar);
 
 renderTienda();
 cargarPartida();
