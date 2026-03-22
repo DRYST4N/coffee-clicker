@@ -35,6 +35,33 @@ body {
     box-shadow:
         0 0 0 4px var(--shadow),
         8px 8px 0 0 var(--shadow);
+    max-height: 85vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-2) #24180f;
+}
+.shop-frame::-webkit-scrollbar,
+#automationContainer::-webkit-scrollbar {
+    width: 10px;
+}
+
+.shop-frame::-webkit-scrollbar-track,
+#automationContainer::-webkit-scrollbar-track {
+    background: #24180f;
+    border: 2px solid var(--border-main);
+}
+
+.shop-frame::-webkit-scrollbar-thumb,
+#automationContainer::-webkit-scrollbar-thumb {
+    background: var(--accent-2);
+    border: 2px solid var(--border-light);
+}
+
+.shop-frame::-webkit-scrollbar-thumb:hover,
+#automationContainer::-webkit-scrollbar-thumb:hover {
+    filter: brightness(1.1);
 }
 
 .shop-title,
@@ -172,6 +199,46 @@ body {
     pointer-events: none;
     animation: floatUp 0.6s ease-out forwards;
     text-shadow: 2px 2px 0 var(--shadow);
+}
+#automationContainer {
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 6px;
+}
+
+#automationContainer::-webkit-scrollbar {
+    width: 10px;
+}
+
+#automationContainer::-webkit-scrollbar-track {
+    background: #24180f;
+    border: 2px solid var(--border-main);
+}
+
+#automationContainer::-webkit-scrollbar-thumb {
+    background: var(--accent-2);
+    border: 2px solid var(--border-light);
+}
+
+#saveToast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: var(--bg-card);
+    color: var(--text-main);
+    border: 3px solid var(--border-light);
+    padding: 10px 14px;
+    box-shadow: 0 4px 0 0 var(--shadow);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(10px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 9999;
+}
+
+#saveToast.show {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 @keyframes floatUp {

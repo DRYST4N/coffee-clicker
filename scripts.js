@@ -6,9 +6,13 @@ const granosTexto = document.getElementById("granosTexto");
 const upgradeContainer = document.getElementById("upgradeContainer");
 const automationContainer = document.getElementById("automationContainer");
 const botonRevivir = document.getElementById("reboton");
+const saveToast = document.getElementById("saveToast");
+
+const SAVE_KEY = "coffeeClickerSave";
 
 let dinero = 0;
 let revivirPrecio = 1000;
+
 
 let coffee = {
     granos: 0,
@@ -70,8 +74,12 @@ botonRevivir.addEventListener("click", revivir);
 
 setInterval(generarGranosAutomaticos, 1000);
 setInterval(ganarDinero, 1000);
+setInterval(() =>{
+    guardarPartida(true);
+}, 15000);
 
 renderTienda();
+cargarPartida();
 actualizarPantalla();
 
 function manejarClickPanel(event) {
@@ -253,4 +261,65 @@ function mostrarTextoFlotante(event, texto) {
     setTimeout(() => {
         plus.remove();
     }, 600);
+}
+
+
+function guardarPartida(mostrarAviso = false) {
+    const saveData = {
+        dinero,
+        revivirPrecio,
+        coffee,
+        clickUpgrade,
+        automations
+    };
+
+    localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+
+    if (mostrarAviso) {
+        mostrarGuardado();
+    }
+}
+
+function cargarPartida() {
+    const saveData = localStorage.getItem(SAVE_KEY);
+
+    if (!saveData) return;
+
+    const parsed = JSON.parse(saveData);
+
+    dinero = parsed.dinero ?? 0;
+    revivirPrecio = parsed.revivirPrecio ?? 1000;
+
+    if (parsed.coffee) {
+        coffee = parsed.coffee;
+    }
+
+    if (parsed.clickUpgrade) {
+        clickUpgrade.level = parsed.clickUpgrade.level ?? 0;
+        clickUpgrade.precioDinero = parsed.clickUpgrade.precioDinero ?? 25;
+        clickUpgrade.precioGranos = parsed.clickUpgrade.precioGranos ?? 25;
+    }
+
+    if (parsed.automations && Array.isArray(parsed.automations)) {
+        parsed.automations.forEach((savedAuto, index) => {
+            if (automations[index]) {
+                automations[index].level = savedAuto.level ?? automations[index].level;
+                automations[index].precioDinero = savedAuto.precioDinero ?? automations[index].precioDinero;
+                automations[index].precioGranos = savedAuto.precioGranos ?? automations[index].precioGranos;
+            }
+        });
+    }
+
+    renderTienda();
+    actualizarPantalla();
+}
+
+function mostrarGuardado() {
+    saveToast.classList.add("show");
+
+    clearTimeout(mostrarGuardado._timeout);
+
+    mostrarGuardado._timeout = setTimeout(() => {
+        saveToast.classList.remove("show");
+    }, 1200);
 }
