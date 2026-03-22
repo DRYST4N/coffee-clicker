@@ -171,14 +171,7 @@ function obtenerSiguienteEtapa() {
     return null;
 }
 
-function automatizacionDesbloqueada(index) {
-    const auto = automations[index];
 
-    if (coffee.granos >= auto.desbloqueo) return true;
-    if (index === 0) return true;
-
-    return automations[index - 1].level > 0;
-}
 
 function comprarMejoraClick() {
     if (dinero >= clickUpgrade.precioDinero && coffee.granos >= clickUpgrade.precioGranos) {
@@ -438,3 +431,24 @@ function cargarPartida() {
 window.addEventListener("beforeunload", () => {
     guardarPartida(false);
 });
+
+//Formulario
+
+const feedbackForm = document.getElementById("feedbackForm");
+const feedbackNegocio = document.getElementById("feedbackNegocio");
+const feedbackDinero = document.getElementById("feedbackDinero");
+const feedbackGranos = document.getElementById("feedbackGranos");
+const feedbackValor = document.getElementById("feedbackValor");
+const feedbackURL = document.getElementById("feedbackURL");
+const feedbackFecha = document.getElementById("feedbackFecha");
+
+if (feedbackForm) {
+    feedbackForm.addEventListener("submit", () => {
+        feedbackNegocio.value = negocioTexto.textContent.trim();
+        feedbackDinero.value = dinero.toFixed(2);
+        feedbackGranos.value = coffee.granos.toFixed(2);
+        feedbackValor.value = coffee.valor.toFixed(2);
+        feedbackURL.value = window.location.href;
+        feedbackFecha.value = new Date().toISOString();
+    });
+}
