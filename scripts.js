@@ -3,28 +3,37 @@ const dineroTexto = document.getElementById("dineroTexto");
 const valorTexto = document.getElementById("valorTexto");
 const granosTexto = document.getElementById("granosTexto");
 
+const negocioTexto = document.getElementById("negocioTexto");
+const metaTexto = document.getElementById("metaTexto");
+const faltanTexto = document.getElementById("faltanTexto");
+
 const upgradeContainer = document.getElementById("upgradeContainer");
 const automationContainer = document.getElementById("automationContainer");
 const botonRevivir = document.getElementById("reboton");
-const saveToast = document.getElementById("saveToast");
 
 const SAVE_KEY = "coffeeClickerSave";
 
-let intervaloGuardar = 300000;
-
 let dinero = 0;
 let revivirPrecio = 1000;
-
 
 let coffee = {
     granos: 0,
     valor: 0.01
 };
 
+const etapasNegocio = [
+    { nombre: "Puesto callejero", requisito: 0 },
+    { nombre: "Cafetería local", requisito: 50 },
+    { nombre: "Tostadora artesanal", requisito: 250 },
+    { nombre: "Fábrica regional", requisito: 1000 },
+    { nombre: "Franquicia nacional", requisito: 5000 },
+    { nombre: "Imperio cafetero", requisito: 20000 }
+];
+
 const clickUpgrade = {
     id: "clickUpgrade",
-    nombre: "Dedos más rápidos",
-    descripcion: "Aumenta los granos por click.",
+    nombre: "Manos entrenadas",
+    descripcion: "Aumenta los granos obtenidos por click.",
     level: 0,
     precioDinero: 25,
     precioGranos: 25,
@@ -35,39 +44,63 @@ const clickUpgrade = {
 const automations = [
     {
         id: "auto1",
-        nombre: "Barista Novato",
-        descripcion: "Produce 0.01 granos por segundo.",
+        nombre: "Empleado",
+        descripcion: "Prepara café automáticamente en tu puesto.",
         level: 0,
         precioDinero: 100,
         precioGranos: 100,
-        potencia: 0.01
+        potencia: 0.01,
+        desbloqueo: 0
     },
     {
         id: "auto2",
-        nombre: "Cafetera Moka",
-        descripcion: "Produce 0.05 granos por segundo.",
+        nombre: "Cafetera industrial",
+        descripcion: "Acelera la producción en la cafetería.",
         level: 0,
         precioDinero: 300,
         precioGranos: 250,
-        potencia: 0.05
+        potencia: 0.05,
+        desbloqueo: 50
     },
     {
         id: "auto3",
-        nombre: "Tostadora Retro",
-        descripcion: "Produce 0.20 granos por segundo.",
+        nombre: "Tostadora profesional",
+        descripcion: "Transforma el grano en producción seria.",
         level: 0,
         precioDinero: 900,
         precioGranos: 600,
-        potencia: 0.20
+        potencia: 0.20,
+        desbloqueo: 250
     },
     {
         id: "auto4",
-        nombre: "Fábrica Pixel",
-        descripcion: "Produce 1.00 granos por segundo.",
+        nombre: "Fábrica de café",
+        descripcion: "Producción automatizada a gran escala.",
         level: 0,
         precioDinero: 2500,
         precioGranos: 1200,
-        potencia: 1.00
+        potencia: 1.00,
+        desbloqueo: 1000
+    },
+    {
+        id: "auto5",
+        nombre: "Franquicia",
+        descripcion: "Expande tu negocio a nuevas ciudades.",
+        level: 0,
+        precioDinero: 7000,
+        precioGranos: 2500,
+        potencia: 4.00,
+        desbloqueo: 5000
+    },
+    {
+        id: "auto6",
+        nombre: "Corporación cafetera",
+        descripcion: "Convierte tu marca en un gigante del café.",
+        level: 0,
+        precioDinero: 18000,
+        precioGranos: 8000,
+        potencia: 12.00,
+        desbloqueo: 20000
     }
 ];
 
@@ -76,9 +109,7 @@ botonRevivir.addEventListener("click", revivir);
 
 setInterval(generarGranosAutomaticos, 1000);
 setInterval(ganarDinero, 1000);
-setInterval(() =>{
-    guardarPartida(true);
-}, intervaloGuardar);
+setInterval(() => guardarPartida(false), 15000);
 
 renderTienda();
 cargarPartida();
@@ -96,6 +127,7 @@ function obtenerGranosPorClick() {
 
 function sumarPuntos() {
     coffee.granos += obtenerGranosPorClick();
+    renderTienda();
     actualizarPantalla();
 }
 
@@ -107,12 +139,45 @@ function generarGranosAutomaticos() {
     }
 
     coffee.granos += total;
+    renderTienda();
     actualizarPantalla();
 }
 
 function ganarDinero() {
     dinero += coffee.valor * coffee.granos;
+    renderTienda();
     actualizarPantalla();
+}
+
+function obtenerEtapaActual() {
+    let etapaActual = etapasNegocio[0];
+
+    for (const etapa of etapasNegocio) {
+        if (coffee.granos >= etapa.requisito) {
+            etapaActual = etapa;
+        }
+    }
+
+    return etapaActual;
+}
+
+function obtenerSiguienteEtapa() {
+    for (const etapa of etapasNegocio) {
+        if (coffee.granos < etapa.requisito) {
+            return etapa;
+        }
+    }
+
+    return null;
+}
+
+function automatizacionDesbloqueada(index) {
+    const auto = automations[index];
+
+    if (coffee.granos >= auto.desbloqueo) return true;
+    if (index === 0) return true;
+
+    return automations[index - 1].level > 0;
 }
 
 function comprarMejoraClick() {
@@ -126,6 +191,7 @@ function comprarMejoraClick() {
 
         renderTienda();
         actualizarPantalla();
+        guardarPartida(true);
     }
 }
 
@@ -144,6 +210,7 @@ function comprarAutomatizacion(id) {
 
         renderTienda();
         actualizarPantalla();
+        guardarPartida(true);
     }
 }
 
@@ -161,55 +228,105 @@ function revivir() {
         clickUpgrade.precioDinero = 25;
         clickUpgrade.precioGranos = 25;
 
-        automations[0].level = 0;
+        automations.forEach(auto => {
+            auto.level = 0;
+        });
+
         automations[0].precioDinero = 100;
         automations[0].precioGranos = 100;
-
-        automations[1].level = 0;
         automations[1].precioDinero = 300;
         automations[1].precioGranos = 250;
-
-        automations[2].level = 0;
         automations[2].precioDinero = 900;
         automations[2].precioGranos = 600;
-
-        automations[3].level = 0;
         automations[3].precioDinero = 2500;
         automations[3].precioGranos = 1200;
+        automations[4].precioDinero = 7000;
+        automations[4].precioGranos = 2500;
+        automations[5].precioDinero = 18000;
+        automations[5].precioGranos = 8000;
 
         revivirPrecio *= 10;
 
         renderTienda();
         actualizarPantalla();
+        guardarPartida(true);
     }
 }
 
+function puedeComprarClickUpgrade() {
+    return dinero >= clickUpgrade.precioDinero &&
+           coffee.granos >= clickUpgrade.precioGranos;
+}
+
+function puedeComprarAuto(auto) {
+    return dinero >= auto.precioDinero &&
+           coffee.granos >= auto.precioGranos;
+}
+
+function automatizacionDesbloqueada(index) {
+    if (index === 0) return true;
+    return automations[index - 1].level > 0;
+}
+
 function renderTienda() {
+    const upgradeDisponible = puedeComprarClickUpgrade();
+
     upgradeContainer.innerHTML = `
         <div class="shop-card">
             <div class="card-title-pixel">${clickUpgrade.nombre}</div>
             <div class="card-subtext">${clickUpgrade.descripcion}</div>
-            <button id="btnClickUpgrade" class="pixel-btn mt-3">
+            <button 
+                id="btnClickUpgrade" 
+                class="pixel-btn mt-3"
+                ${upgradeDisponible ? "" : "disabled"}
+            >
                 Nivel ${clickUpgrade.level} | ${clickUpgrade.precioDinero}€ | ${clickUpgrade.precioGranos} granos
             </button>
         </div>
     `;
 
-    automationContainer.innerHTML = automations.map(auto => `
-        <div class="shop-card">
-            <div class="card-title-pixel">${auto.nombre}</div>
-            <div class="card-subtext">
-                ${auto.descripcion}<br>
-                Producción total: ${(auto.level * auto.potencia).toFixed(2)}/s
-            </div>
-            <button class="pixel-btn mt-3 auto-buy-btn" data-id="${auto.id}">
-                Nivel ${auto.level} | ${auto.precioDinero}€ | ${auto.precioGranos} granos
-            </button>
-        </div>
-    `).join("");
+    automationContainer.innerHTML = automations.map((auto, index) => {
+        const desbloqueada = automatizacionDesbloqueada(index);
 
-    document.getElementById("btnClickUpgrade")
-        .addEventListener("click", comprarMejoraClick);
+        if (!desbloqueada) {
+            return `
+                <div class="shop-card secret-card">
+                    <div class="card-title-pixel">???</div>
+                    <div class="card-subtext">
+                        Sigue expandiendo tu negocio para desbloquear esta mejora.
+                    </div>
+                    <button class="pixel-btn mt-3" disabled>
+                        BLOQUEADA
+                    </button>
+                </div>
+            `;
+        }
+
+        const disponible = puedeComprarAuto(auto);
+
+        return `
+            <div class="shop-card">
+                <div class="card-title-pixel">${auto.nombre}</div>
+                <div class="card-subtext">
+                    ${auto.descripcion}<br>
+                    Se desbloquea en: ${auto.desbloqueo} granos<br>
+                    Producción total: ${(auto.level * auto.potencia).toFixed(2)}/s
+                </div>
+                <button
+                    class="pixel-btn mt-3 auto-buy-btn"
+                    data-id="${auto.id}"
+                    ${disponible ? "" : "disabled"}
+                >
+                    Nivel ${auto.level} | ${auto.precioDinero}€ | ${auto.precioGranos} granos
+                </button>
+            </div>
+        `;
+    }).join("");
+
+    const btnClickUpgrade = document.getElementById("btnClickUpgrade");
+    if (btnClickUpgrade) {
+        btnClickUpgrade.addEventListener("click", comprarMejoraClick);
+    }
 
     document.querySelectorAll(".auto-buy-btn").forEach(btn => {
         btn.addEventListener("click", () => {
@@ -219,24 +336,35 @@ function renderTienda() {
 }
 
 function actualizarPantalla() {
+    const etapaActual = obtenerEtapaActual();
+    const siguienteEtapa = obtenerSiguienteEtapa();
+
     dineroTexto.textContent = dinero.toFixed(2);
     valorTexto.textContent = coffee.valor.toFixed(2);
     granosTexto.textContent = coffee.granos.toFixed(2);
 
-    const btnClick = document.getElementById("btnClickUpgrade");
-    if (btnClick) {
-        btnClick.disabled = !(dinero >= clickUpgrade.precioDinero && coffee.granos >= clickUpgrade.precioGranos);
-    }
+    negocioTexto.textContent = etapaActual.nombre;
 
-    automations.forEach(auto => {
-        const btn = document.querySelector(`[data-id="${auto.id}"]`);
-        if (btn) {
-            btn.disabled = !(dinero >= auto.precioDinero && coffee.granos >= auto.precioGranos);
-        }
-    });
+    if (siguienteEtapa) {
+        metaTexto.textContent = siguienteEtapa.nombre;
+        faltanTexto.textContent = Math.max(0, siguienteEtapa.requisito - coffee.granos).toFixed(2);
+    } else {
+        metaTexto.textContent = "Máximo alcanzado";
+        faltanTexto.textContent = "0";
+    }
 
     botonRevivir.textContent = `Precio: ${revivirPrecio} granos`;
     botonRevivir.disabled = coffee.granos < revivirPrecio;
+}
+
+function renderTiendaSiDesbloqueaAlgo() {
+    const visiblesAntes = document.querySelectorAll(".auto-buy-btn, .secret-card").length;
+    renderTienda();
+    const visiblesDespues = document.querySelectorAll(".auto-buy-btn, .secret-card").length;
+
+    if (visiblesAntes !== visiblesDespues) {
+        actualizarPantalla();
+    }
 }
 
 function animarPanel() {
@@ -265,7 +393,6 @@ function mostrarTextoFlotante(event, texto) {
     }, 600);
 }
 
-
 function guardarPartida(mostrarAviso = false) {
     const saveData = {
         dinero,
@@ -276,15 +403,10 @@ function guardarPartida(mostrarAviso = false) {
     };
 
     localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
-
-    if (mostrarAviso) {
-        mostrarGuardado();
-    }
 }
 
 function cargarPartida() {
     const saveData = localStorage.getItem(SAVE_KEY);
-
     if (!saveData) return;
 
     const parsed = JSON.parse(saveData);
@@ -311,17 +433,8 @@ function cargarPartida() {
             }
         });
     }
-
-    renderTienda();
-    actualizarPantalla();
 }
 
-function mostrarGuardado() {
-    saveToast.classList.add("show");
-
-    clearTimeout(mostrarGuardado._timeout);
-
-    mostrarGuardado._timeout = setTimeout(() => {
-        saveToast.classList.remove("show");
-    }, 1200);
-}
+window.addEventListener("beforeunload", () => {
+    guardarPartida(false);
+});

@@ -240,6 +240,12 @@ body {
     opacity: 1;
     transform: translateY(0);
 }
+#progresoNegocio {
+    background-color: rgba(0, 0, 0, 0.15);
+    border: 2px solid var(--border-light);
+    padding: 10px;
+    margin-bottom: 10px;
+}
 
 @keyframes floatUp {
     0% {
