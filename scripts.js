@@ -389,39 +389,48 @@ function mostrarTextoFlotante(event, texto) {
     }, 600);
 }
 
-function guardarPartida(mostrarAviso = false) {
-    const saveData = {
+//------------------------------------------------------
+// Logica para guardar y cargar la partida 
+//-----------------------------------------------------
+
+
+function obtenerEstadoCompleto(){
+    return {
         dinero,
         revivirPrecio,
         coffee,
         clickUpgrade,
         automations
     };
+    
+}
 
-    localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+function guardarPartida(mostrarAviso = false) {
+    
+    localStorage.setItem(SAVE_KEY, JSON.stringify(obtenerEstadoCompleto()));
 }
 
 function cargarPartida() {
     const saveData = localStorage.getItem(SAVE_KEY);
     if (!saveData) return;
+    cargarEstado(JSON.parse(saveData));
+};
 
-    const parsed = JSON.parse(saveData);
+function cargarEstado(data){
+    dinero = data.dinero ?? 0;
+    revivirPrecio = data.revivirPrecio ?? 1000;
 
-    dinero = parsed.dinero ?? 0;
-    revivirPrecio = parsed.revivirPrecio ?? 1000;
-
-    if (parsed.coffee) {
-        coffee = parsed.coffee;
+    if(data.coffee){
+        coffee = data.coffee;
+    }
+    if(data.clickUpgrade){
+        clickUpgrade.level = data.clickUpgrade.level ?? 0;
+        clickUpgrade.precioDinero = data.clickUpgrade.precioDinero ?? precioDineroBase;
+        clickUpgrade.precioGranos = data.clickUpgrade.precioGranos ?? precioGranosBase;
     }
 
-    if (parsed.clickUpgrade) {
-        clickUpgrade.level = parsed.clickUpgrade.level ?? 0;
-        clickUpgrade.precioDinero = parsed.clickUpgrade.precioDinero ?? 25;
-        clickUpgrade.precioGranos = parsed.clickUpgrade.precioGranos ?? 25;
-    }
-
-    if (parsed.automations && Array.isArray(parsed.automations)) {
-        parsed.automations.forEach((savedAuto, index) => {
+    if (data.automations && Array.isArray(data.automations)) {
+        data.automations.forEach((savedAuto, index) => {
             if (automations[index]) {
                 automations[index].level = savedAuto.level ?? automations[index].level;
                 automations[index].precioDinero = savedAuto.precioDinero ?? automations[index].precioDinero;
@@ -429,11 +438,8 @@ function cargarPartida() {
             }
         });
     }
-}
 
-window.addEventListener("beforeunload", () => {
-    guardarPartida(false);
-});
+}
 
 //Formulario
 
