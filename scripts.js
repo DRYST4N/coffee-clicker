@@ -35,6 +35,8 @@ const clickUpgrade = {
     nombre: "Manos entrenadas",
     descripcion: "Aumenta los granos obtenidos por click.",
     level: 0,
+    precioDineroBase: 25,
+    precioGranosBase: 25,
     precioDinero: 25,
     precioGranos: 25,
     potenciaBase: 1,
@@ -47,6 +49,8 @@ const automations = [
         nombre: "Empleado",
         descripcion: "Prepara café automáticamente en tu puesto.",
         level: 0,
+        precioDineroBase: 100,
+        precioGranosBase: 100,
         precioDinero: 100,
         precioGranos: 100,
         potencia: 0.01,
@@ -57,6 +61,8 @@ const automations = [
         nombre: "Cafetera industrial",
         descripcion: "Acelera la producción en la cafetería.",
         level: 0,
+        precioDineroBase: 300,
+        precioGranosBase: 250,
         precioDinero: 300,
         precioGranos: 250,
         potencia: 0.05,
@@ -67,6 +73,8 @@ const automations = [
         nombre: "Tostadora profesional",
         descripcion: "Transforma el grano en producción seria.",
         level: 0,
+        precioDineroBase: 900,
+        precioGranosBase: 600,
         precioDinero: 900,
         precioGranos: 600,
         potencia: 0.20,
@@ -77,6 +85,8 @@ const automations = [
         nombre: "Fábrica de café",
         descripcion: "Producción automatizada a gran escala.",
         level: 0,
+        precioDineroBase: 2500,
+        precioGranosBase: 1200,
         precioDinero: 2500,
         precioGranos: 1200,
         potencia: 1.00,
@@ -87,6 +97,8 @@ const automations = [
         nombre: "Franquicia",
         descripcion: "Expande tu negocio a nuevas ciudades.",
         level: 0,
+        precioDineroBase: 7000,
+        precioGranosBase: 2500,
         precioDinero: 7000,
         precioGranos: 2500,
         potencia: 4.00,
@@ -97,6 +109,8 @@ const automations = [
         nombre: "Corporación cafetera",
         descripcion: "Convierte tu marca en un gigante del café.",
         level: 0,
+        precioDineroBase: 18000,
+        precioGranosBase: 8000,
         precioDinero: 18000,
         precioGranos: 8000,
         potencia: 12.00,
@@ -223,20 +237,9 @@ function revivir() {
 
         automations.forEach(auto => {
             auto.level = 0;
+            auto.precioDinero = auto.precioDineroBase;
+            auto.precioGranos = auto.precioGranosBase;
         });
-
-        automations[0].precioDinero = 100;
-        automations[0].precioGranos = 100;
-        automations[1].precioDinero = 300;
-        automations[1].precioGranos = 250;
-        automations[2].precioDinero = 900;
-        automations[2].precioGranos = 600;
-        automations[3].precioDinero = 2500;
-        automations[3].precioGranos = 1200;
-        automations[4].precioDinero = 7000;
-        automations[4].precioGranos = 2500;
-        automations[5].precioDinero = 18000;
-        automations[5].precioGranos = 8000;
 
         revivirPrecio *= 10;
 
