@@ -12,6 +12,7 @@ const automationContainer = document.getElementById("automationContainer");
 const botonRevivir = document.getElementById("reboton");
 
 const SAVE_KEY = "coffeeClickerSave";
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let dinero = 0;
 let revivirPrecio = 1000;
@@ -125,9 +126,13 @@ setInterval(generarGranosAutomaticos, 1000);
 setInterval(ganarDinero, 1000);
 setInterval(() => guardarPartida(false), 15000);
 
-renderTienda();
-cargarPartida();
-actualizarPantalla();
+async function iniciarJuego() {
+    await cargarPartida();
+    renderTienda();
+    actualizarPantalla();
+}
+
+iniciarJuego();
 
 function manejarClickPanel(event) {
     sumarPuntos();
@@ -393,6 +398,14 @@ function mostrarTextoFlotante(event, texto) {
 // Logica para guardar y cargar la partida 
 //-----------------------------------------------------
 
+function obtenerPlayerId(){
+    let playerId = localStorage.getItem("coffeeClickerPlayerId");
+    if(!playerId){
+        playerId = crypto.randomUUID();
+        localStorage.setItem("coffeeClickerPlayerId", playerId);
+    }
+    return playerId
+}
 
 function obtenerEstadoCompleto(){
     return {
@@ -405,15 +418,48 @@ function obtenerEstadoCompleto(){
     
 }
 
-function guardarPartida(mostrarAviso = false) {
-    
-    localStorage.setItem(SAVE_KEY, JSON.stringify(obtenerEstadoCompleto()));
-}
+async function guardarPartida() {
+    const estado  =obtenerEstadoCompleto();
+    const playerId = obtenerPlayerId();
 
-function cargarPartida() {
-    const saveData = localStorage.getItem(SAVE_KEY);
-    if (!saveData) return;
-    cargarEstado(JSON.parse(saveData));
+    //LO guardamos como backup
+    localStorage.setItem(SAVE_KEY, JSON.stringify(estado));
+
+    //Guardamos en SUpabase
+    const { error } = await supabaseClient
+        .from("partidas")
+        .upsert(
+            { player_id: playerId, estado: estado, updated_at: new Date().toISOString() },
+            { onConflict: "player_id" }
+        );
+
+    if(error){
+        console.error("Error guardando en Supabase:", error.message);
+    }
+
+};
+
+async function cargarPartida() {
+    const playerId = obtenerPlayerId();
+
+    // Intentar cargar desde Supabase
+    const { data, error } = await supabaseClient
+        .from("partidas")
+        .select("estado")
+        .eq("player_id", playerId)
+        .single();
+
+    if (data && data.estado) {
+        cargarEstado(data.estado);
+        return;
+    }
+
+    // Si falla o no existe, usar localStorage como fallback
+    console.warn("No hay datos en Supabase, cargando desde localStorage:", error?.message);
+    const saveLocal = localStorage.getItem(SAVE_KEY);
+    if (saveLocal) {
+        cargarEstado(JSON.parse(saveLocal));
+    }
 };
 
 function cargarEstado(data){
