@@ -146,7 +146,7 @@ function obtenerGranosPorClick() {
 
 function sumarPuntos() {
     coffee.granos += obtenerGranosPorClick();
-    renderTienda();
+    actualizarBotonesTienda();
     actualizarPantalla();
 }
 
@@ -158,13 +158,13 @@ function generarGranosAutomaticos() {
     }
 
     coffee.granos += total;
-    renderTienda();
+    actualizarBotonesTienda();
     actualizarPantalla();
 }
 
 function ganarDinero() {
     dinero += coffee.valor * coffee.granos;
-    renderTienda();
+    actualizarBotonesTienda();
     actualizarPantalla();
 }
 
@@ -333,6 +333,19 @@ function renderTienda() {
         btn.addEventListener("click", () => {
             comprarAutomatizacion(btn.dataset.id);
         });
+    });
+}
+
+function actualizarBotonesTienda(){
+    const btnClickUpgrade = document.getElementById("btnClick");
+    if (btnClickUpgrade){
+        btnClickUpgrade.disabled = !puedeComprarClickUpgrade();
+    }
+    document.querySelector(".auto-buy-btn").forEach(btn =>{
+        const auto = automations.find(a=> a.id === btn.dataset.id);
+        if(auto){
+            btn.disabled = !puedeComprarAuto(auto);
+        }
     });
 }
 
