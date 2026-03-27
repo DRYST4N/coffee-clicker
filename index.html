@@ -71,15 +71,14 @@
             </div>
         </div>
     </div>
-    <button
-    id="feedbackOpenBtn"
-    class="pixel-btn mt-3"
-    data-bs-toggle="modal"
-    data-bs-target="#feedbackModal"
-    type="button"
->
-    Enviar feedback
+    <div id="hudButtons">
+    <button class="pixel-btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal" type="button">
+        🔑 Cuenta
     </button>
+    <button class="pixel-btn-sm" data-bs-toggle="modal" data-bs-target="#feedbackModal" type="button">
+        💬 Feedback
+    </button>
+</div>
     <div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content pixel-modal">
@@ -137,6 +136,24 @@
                         <button type="submit" class="pixel-btn">Enviar</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content pixel-modal">
+                <div class="modal-header pixel-modal-header">
+                    <h5 class="modal-title shop-title mb-0">☕ Guardar progreso</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="card-subtext">Introduce tu email y te mandamos un enlace. Sin contraseña, sin complicaciones.</p>
+                    <input type="email" id="loginEmail" class="form-control pixel-input mt-2" placeholder="tu@email.com">
+                    <div id="loginMensaje" class="card-subtext mt-2" style="display: none;"></div>
+                </div>
+                <div class="modal-footer pixel-modal-footer">
+                    <button type="button" class="pixel-btn" id="btnEnviarMagicLink">Enviar enlace</button>
+                </div>
             </div>
         </div>
     </div>

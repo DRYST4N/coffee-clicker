@@ -134,6 +134,42 @@ async function iniciarJuego() {
 
 iniciarJuego();
 
+// Listener del botón de magic link
+document.getElementById("btnEnviarMagicLink").addEventListener("click", async () => {
+    const email = document.getElementById("loginEmail").value.trim();
+    const mensaje = document.getElementById("loginMensaje");
+
+    if (!email) {
+        mensaje.style.display = "block";
+        mensaje.textContent = "Introduce un email válido.";
+        return;
+    }
+
+    const btn = document.getElementById("btnEnviarMagicLink");
+    btn.disabled = true;
+    btn.textContent = "Enviando...";
+
+    const ok = await enviarMagicLink(email);
+
+    mensaje.style.display = "block";
+    if (ok) {
+        mensaje.textContent = "✅ Enlace enviado. Revisa tu correo.";
+        btn.textContent = "Enviado";
+    } else {
+        mensaje.textContent = "❌ Error al enviar. Inténtalo de nuevo.";
+        btn.disabled = false;
+        btn.textContent = "Enviar enlace";
+    }
+});
+
+// Detector de sesión — se dispara cuando el jugador hace click en el magic link
+supabaseClient.auth.onAuthStateChange(async (event, session) => {
+    if (event === "SIGNED_IN") {
+        console.log("Sesión iniciada:", session.user.id);
+        await iniciarJuego();
+    }
+});
+
 function manejarClickPanel(event) {
     sumarPuntos();
     animarPanel();
@@ -237,8 +273,8 @@ function revivir() {
         };
 
         clickUpgrade.level = 0;
-        clickUpgrade.precioDinero = 25;
-        clickUpgrade.precioGranos = 25;
+        clickUpgrade.precioDinero = clickUpgrade.precioDineroBase;
+        clickUpgrade.precioGranos = clickUpgrade.precioGranosBase;
 
         automations.forEach(auto => {
             auto.level = 0;
@@ -337,11 +373,11 @@ function renderTienda() {
 }
 
 function actualizarBotonesTienda(){
-    const btnClickUpgrade = document.getElementById("btnClick");
+    const btnClickUpgrade = document.getElementById("btnClickUpgrade");
     if (btnClickUpgrade){
         btnClickUpgrade.disabled = !puedeComprarClickUpgrade();
     }
-    document.querySelector(".auto-buy-btn").forEach(btn =>{
+    document.querySelectorAll(".auto-buy-btn").forEach(btn =>{
         const auto = automations.find(a=> a.id === btn.dataset.id);
         if(auto){
             btn.disabled = !puedeComprarAuto(auto);
@@ -411,7 +447,29 @@ function mostrarTextoFlotante(event, texto) {
 // Logica para guardar y cargar la partida 
 //-----------------------------------------------------
 
-function obtenerPlayerId(){
+
+async function enviarMagicLink(email) {
+    const { error } = await supabaseClient.auth.signInWithOtp({
+        email: email,
+        options: {
+            emailRedirectTo: "http://127.0.0.1:5500/Pruebas/index.html" // EN Local // Recordar cambiarlo en PRO
+        }
+    });
+    if (error){
+        console.error("Error enviando magic link: ", error.message);
+        return false;
+    }
+    return true
+}
+
+async function obtenerPlayerId(){
+    const { data: { session } } = await supabaseClient.auth.getSession();
+
+    if(session){
+        return session.user.id; // ID real de Supabase -> Sincronizado entre dispositibos
+    }
+
+    //sin sesion -> ID anonimo en localStorage
     let playerId = localStorage.getItem("coffeeClickerPlayerId");
     if(!playerId){
         playerId = crypto.randomUUID();
@@ -433,7 +491,7 @@ function obtenerEstadoCompleto(){
 
 async function guardarPartida() {
     const estado  =obtenerEstadoCompleto();
-    const playerId = obtenerPlayerId();
+    const playerId = await obtenerPlayerId();
 
     //LO guardamos como backup
     localStorage.setItem(SAVE_KEY, JSON.stringify(estado));
@@ -453,7 +511,7 @@ async function guardarPartida() {
 };
 
 async function cargarPartida() {
-    const playerId = obtenerPlayerId();
+    const playerId =  await obtenerPlayerId();
 
     // Intentar cargar desde Supabase
     const { data, error } = await supabaseClient
@@ -500,7 +558,11 @@ function cargarEstado(data){
 
 }
 
+
+
+//-----------------------------------------
 //Formulario
+//-----------------------------------------
 
 const feedbackForm = document.getElementById("feedbackForm");
 const feedbackNegocio = document.getElementById("feedbackNegocio");
