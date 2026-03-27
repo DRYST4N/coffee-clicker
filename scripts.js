@@ -1,3 +1,6 @@
+const VERSION = "0.0.1";
+
+
 const panel = document.getElementById("panel");
 const dineroTexto = document.getElementById("dineroTexto");
 const valorTexto = document.getElementById("valorTexto");
@@ -13,6 +16,9 @@ const botonRevivir = document.getElementById("reboton");
 
 const SAVE_KEY = "coffeeClickerSave";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+
+
 
 let dinero = 0;
 let revivirPrecio = 1000;
@@ -542,8 +548,8 @@ function cargarEstado(data){
     }
     if(data.clickUpgrade){
         clickUpgrade.level = data.clickUpgrade.level ?? 0;
-        clickUpgrade.precioDinero = data.clickUpgrade.precioDinero ?? precioDineroBase;
-        clickUpgrade.precioGranos = data.clickUpgrade.precioGranos ?? precioGranosBase;
+        clickUpgrade.precioDinero = data.clickUpgrade.precioDinero ?? clickUpgrade.precioDineroBase;
+        clickUpgrade.precioGranos = data.clickUpgrade.precioGranos ?? clickUpgrade.precioGranosBase;
     }
 
     if (data.automations && Array.isArray(data.automations)) {
@@ -564,21 +570,3 @@ function cargarEstado(data){
 //Formulario
 //-----------------------------------------
 
-const feedbackForm = document.getElementById("feedbackForm");
-const feedbackNegocio = document.getElementById("feedbackNegocio");
-const feedbackDinero = document.getElementById("feedbackDinero");
-const feedbackGranos = document.getElementById("feedbackGranos");
-const feedbackValor = document.getElementById("feedbackValor");
-const feedbackURL = document.getElementById("feedbackURL");
-const feedbackFecha = document.getElementById("feedbackFecha");
-
-if (feedbackForm) {
-    feedbackForm.addEventListener("submit", () => {
-        feedbackNegocio.value = negocioTexto.textContent.trim();
-        feedbackDinero.value = dinero.toFixed(2);
-        feedbackGranos.value = coffee.granos.toFixed(2);
-        feedbackValor.value = coffee.valor.toFixed(2);
-        feedbackURL.value = window.location.href;
-        feedbackFecha.value = new Date().toISOString();
-    });
-}
