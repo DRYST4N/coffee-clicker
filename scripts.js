@@ -15,6 +15,8 @@ const automationContainer = document.getElementById("automationContainer");
 const botonRevivir = document.getElementById("reboton");
 
 const SAVE_KEY = "coffeeClickerSave";
+const feedbackForm = document.getElementById("feedbackForm");
+
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 
@@ -570,3 +572,44 @@ function cargarEstado(data){
 //Formulario
 //-----------------------------------------
 
+console.log("1");
+
+if (feedbackForm) {
+    console.log("2");
+    feedbackForm.addEventListener("submit", async (e) => {
+        console.log("3");
+        e.preventDefault();
+
+        console.log("4");
+        const payload = {
+            usuario: document.getElementById("feedbackUsuario").value.trim() || null,
+            mensaje: document.getElementById("feedbackMensaje").value.trim(),
+            version: VERSION
+        };
+        
+        console.log("5");
+try {
+    const { error } = await supabaseClient
+        .from("feedback")
+        .insert(payload, { returning: 'minimal' });
+    
+    console.log("6 - error:", error);
+
+    const modal = bootstrap.Modal.getInstance(
+        document.getElementById("feedbackModal")
+    );
+
+    if (error) {
+        console.error("Error enviando feedback:", error.message);
+        alert("Error al enviar el feedback. Inténtalo de nuevo.");
+    } else {
+        modal.hide();
+        document.getElementById("feedbackUsuario").value = "";
+        document.getElementById("feedbackMensaje").value = "";
+    }
+} catch (err) {
+    console.error("Error inesperado en el insert:", err);
+}
+console.log("7");
+    });
+}
