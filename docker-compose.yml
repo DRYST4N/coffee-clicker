@@ -1,0 +1,14 @@
+services:
+  web:
+    build:
+      context: .
+      target: development
+    ports:
+      - "8080:3000"
+    volumes:
+      - .:/app
+    environment:
+      SUPABASE_URL: https://xxx.supabase.co
+      SUPABASE_KEY: sb_xxx
+      CHOKIDAR_USEPOLLING: "true"
+    restart: unless-stopped

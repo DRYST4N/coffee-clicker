@@ -1,0 +1,11 @@
+.git
+.gitignore
+.dockerignore
+.DS_Store
+Dockerfile
+docker-compose.yml
+docker-compose.override.yml
+Makefile
+README.md
+node_modules
+env.js

@@ -13,11 +13,20 @@ const faltanTexto = document.getElementById("faltanTexto");
 const upgradeContainer = document.getElementById("upgradeContainer");
 const automationContainer = document.getElementById("automationContainer");
 const botonRevivir = document.getElementById("reboton");
+const accountButton = document.getElementById("accountButton");
+const loginModalElement = document.getElementById("loginModal");
+const loginEmailInput = document.getElementById("loginEmail");
+const loginMensaje = document.getElementById("loginMensaje");
+const btnEnviarMagicLink = document.getElementById("btnEnviarMagicLink");
 
 const SAVE_KEY = "coffeeClickerSave";
 const feedbackForm = document.getElementById("feedbackForm");
 
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = HAS_SUPABASE_CONFIG
+    ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+    : null;
+
+let currentSession = null;
 
 
 
@@ -129,6 +138,7 @@ const automations = [
 
 panel.addEventListener("click", manejarClickPanel);
 botonRevivir.addEventListener("click", revivir);
+accountButton.addEventListener("click", manejarClickCuenta);
 
 setInterval(generarGranosAutomaticos, 1000);
 setInterval(ganarDinero, 1000);
@@ -140,12 +150,23 @@ async function iniciarJuego() {
     actualizarPantalla();
 }
 
-iniciarJuego();
+async function inicializarAplicacion() {
+    await sincronizarSesionActual();
+    await iniciarJuego();
+}
+
+inicializarAplicacion();
 
 // Listener del botón de magic link
-document.getElementById("btnEnviarMagicLink").addEventListener("click", async () => {
-    const email = document.getElementById("loginEmail").value.trim();
-    const mensaje = document.getElementById("loginMensaje");
+btnEnviarMagicLink.addEventListener("click", async () => {
+    const email = loginEmailInput.value.trim();
+    const mensaje = loginMensaje;
+
+    if (!supabaseClient) {
+        mensaje.style.display = "block";
+        mensaje.textContent = "El login no esta disponible en este entorno.";
+        return;
+    }
 
     if (!email) {
         mensaje.style.display = "block";
@@ -153,7 +174,7 @@ document.getElementById("btnEnviarMagicLink").addEventListener("click", async ()
         return;
     }
 
-    const btn = document.getElementById("btnEnviarMagicLink");
+    const btn = btnEnviarMagicLink;
     btn.disabled = true;
     btn.textContent = "Enviando...";
 
@@ -171,12 +192,109 @@ document.getElementById("btnEnviarMagicLink").addEventListener("click", async ()
 });
 
 // Detector de sesión — se dispara cuando el jugador hace click en el magic link
-supabaseClient.auth.onAuthStateChange(async (event, session) => {
-    if (event === "SIGNED_IN") {
-        console.log("Sesión iniciada:", session.user.id);
-        await iniciarJuego();
+if (supabaseClient) {
+    supabaseClient.auth.onAuthStateChange(async (event, session) => {
+        currentSession = session;
+        actualizarBotonCuenta();
+
+        if (event === "SIGNED_IN") {
+            console.log("Sesión iniciada:", session.user.id);
+            resetearLoginModal();
+            cerrarLoginModal();
+            await iniciarJuego();
+        }
+
+        if (event === "SIGNED_OUT") {
+            resetearLoginModal();
+            await iniciarJuego();
+        }
+    });
+}
+
+async function sincronizarSesionActual() {
+    if (!supabaseClient) {
+        currentSession = null;
+        actualizarBotonCuenta();
+        return;
     }
-});
+
+    const { data, error } = await supabaseClient.auth.getSession();
+
+    if (error) {
+        console.error("Error obteniendo la sesión actual:", error.message);
+        currentSession = null;
+    } else {
+        currentSession = data.session;
+    }
+
+    actualizarBotonCuenta();
+}
+
+function actualizarBotonCuenta() {
+    accountButton.textContent = currentSession ? "🚪 Salir" : "🔑 Cuenta";
+}
+
+function tieneSesionActiva() {
+    return Boolean(currentSession?.user?.id);
+}
+
+function obtenerGuardadoLocal() {
+    const rawSave = localStorage.getItem(SAVE_KEY);
+
+    if (!rawSave) {
+        return null;
+    }
+
+    try {
+        return JSON.parse(rawSave);
+    } catch (error) {
+        console.warn("No se pudo leer el guardado local:", error);
+        return null;
+    }
+}
+
+function abrirLoginModal() {
+    bootstrap.Modal.getOrCreateInstance(loginModalElement).show();
+}
+
+function cerrarLoginModal() {
+    bootstrap.Modal.getOrCreateInstance(loginModalElement).hide();
+}
+
+function resetearLoginModal() {
+    loginEmailInput.value = "";
+    loginMensaje.style.display = "none";
+    loginMensaje.textContent = "";
+    btnEnviarMagicLink.disabled = false;
+    btnEnviarMagicLink.textContent = "Enviar enlace";
+}
+
+async function manejarClickCuenta() {
+    if (!currentSession) {
+        resetearLoginModal();
+        abrirLoginModal();
+        return;
+    }
+
+    if (!supabaseClient) {
+        return;
+    }
+
+    accountButton.disabled = true;
+
+    const { error } = await supabaseClient.auth.signOut();
+
+    accountButton.disabled = false;
+
+    if (error) {
+        console.error("Error cerrando sesión:", error.message);
+        alert("No se pudo cerrar la sesión. Inténtalo de nuevo.");
+        return;
+    }
+
+    currentSession = null;
+    actualizarBotonCuenta();
+}
 
 function manejarClickPanel(event) {
     sumarPuntos();
@@ -457,10 +575,14 @@ function mostrarTextoFlotante(event, texto) {
 
 
 async function enviarMagicLink(email) {
+    if (!supabaseClient) {
+        return false;
+    }
+
     const { error } = await supabaseClient.auth.signInWithOtp({
         email: email,
         options: {
-            emailRedirectTo: "http://127.0.0.1:5500/Pruebas/index.html" // EN Local // Recordar cambiarlo en PRO
+            emailRedirectTo: window.location.href
         }
     });
     if (error){
@@ -470,20 +592,24 @@ async function enviarMagicLink(email) {
     return true
 }
 
-async function obtenerPlayerId(){
-    const { data: { session } } = await supabaseClient.auth.getSession();
+function resetearEstadoJuego() {
+    dinero = 0;
+    revivirPrecio = 1000;
 
-    if(session){
-        return session.user.id; // ID real de Supabase -> Sincronizado entre dispositibos
-    }
+    coffee = {
+        granos: 0,
+        valor: 0.01
+    };
 
-    //sin sesion -> ID anonimo en localStorage
-    let playerId = localStorage.getItem("coffeeClickerPlayerId");
-    if(!playerId){
-        playerId = crypto.randomUUID();
-        localStorage.setItem("coffeeClickerPlayerId", playerId);
-    }
-    return playerId
+    clickUpgrade.level = 0;
+    clickUpgrade.precioDinero = clickUpgrade.precioDineroBase;
+    clickUpgrade.precioGranos = clickUpgrade.precioGranosBase;
+
+    automations.forEach(auto => {
+        auto.level = 0;
+        auto.precioDinero = auto.precioDineroBase;
+        auto.precioGranos = auto.precioGranosBase;
+    });
 }
 
 function obtenerEstadoCompleto(){
@@ -497,47 +623,79 @@ function obtenerEstadoCompleto(){
     
 }
 
+async function guardarPartidaRemota(estado) {
+    if (!supabaseClient || !tieneSesionActiva()) {
+        return false;
+    }
+
+    const { error } = await supabaseClient
+        .from("partidas")
+        .upsert(
+            {
+                player_id: currentSession.user.id,
+                estado: estado,
+                updated_at: new Date().toISOString()
+            },
+            { onConflict: "player_id" }
+        );
+
+    if (error) {
+        console.error("Error guardando en Supabase:", error.message);
+        return false;
+    }
+
+    console.log("Partida guardada en Supabase");
+    return true;
+}
+
 async function guardarPartida() {
     const estado  =obtenerEstadoCompleto();
-    const playerId = await obtenerPlayerId();
 
     //LO guardamos como backup
     localStorage.setItem(SAVE_KEY, JSON.stringify(estado));
 
-    //Guardamos en SUpabase
-    const { error } = await supabaseClient
-        .from("partidas")
-        .upsert(
-            { player_id: playerId, estado: estado, updated_at: new Date().toISOString() },
-            { onConflict: "player_id" }
-        );
-
-    if(error){
-        console.error("Error guardando en Supabase:", error.message);
+    if (!tieneSesionActiva()) {
+        return;
     }
 
+    await guardarPartidaRemota(estado);
 };
 
 async function cargarPartida() {
-    const playerId =  await obtenerPlayerId();
+    const saveLocal = obtenerGuardadoLocal();
+
+    resetearEstadoJuego();
+
+    if (!tieneSesionActiva()) {
+        if (saveLocal) {
+            cargarEstado(saveLocal);
+        }
+        return;
+    }
 
     // Intentar cargar desde Supabase
     const { data, error } = await supabaseClient
         .from("partidas")
         .select("estado")
-        .eq("player_id", playerId)
-        .single();
+        .eq("player_id", currentSession.user.id)
+        .maybeSingle();
 
     if (data && data.estado) {
         cargarEstado(data.estado);
         return;
     }
 
-    // Si falla o no existe, usar localStorage como fallback
-    console.warn("No hay datos en Supabase, cargando desde localStorage:", error?.message);
-    const saveLocal = localStorage.getItem(SAVE_KEY);
+    if (error) {
+        console.warn("Error cargando la partida desde Supabase, usando localStorage:", error.message);
+    }
+
+    // Si no existe o falla, usar localStorage como fallback
     if (saveLocal) {
-        cargarEstado(JSON.parse(saveLocal));
+        cargarEstado(saveLocal);
+    }
+
+    if (!data && !error && saveLocal) {
+        await guardarPartidaRemota(saveLocal);
     }
 };
 
@@ -589,6 +747,11 @@ if (feedbackForm) {
         
         console.log("5");
 try {
+    if (!supabaseClient) {
+        alert("El feedback no esta disponible en este entorno.");
+        return;
+    }
+
     const { error } = await supabaseClient
         .from("feedback")
         .insert(payload, { returning: 'minimal' });
