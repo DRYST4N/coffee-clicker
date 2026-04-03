@@ -316,6 +316,41 @@ body {
     transform: translateY(3px);
     box-shadow: 0 1px 0 0 var(--shadow);
 }
+
+#logroToast{
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    background-color: var(--bg-card);
+    color: var(--text-main);
+    border: 3px solid var(--border-light);
+    padding: 12px 16px;
+    box-shadow: 0 4px 0 0 var(--shadow);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 9999;
+    max-width: 280px;
+}
+
+#logroToast.show{
+    opacity: 1;
+    transform: translateY(0);
+}
+.logro-titulo{
+    font-size: 0.9rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+}
+
+.logro-desc{
+    font-size: 0.78rem;
+    color: var(--text-soft);
+}
+
 @keyframes floatUp {
     0% {
         opacity: 1;

@@ -136,6 +136,26 @@ const automations = [
     }
 ];
 
+let totalClicks = 0;
+let totalRevivires = 0;
+const logros = [
+    { id: "primer_click",    nombre: "☕ Primera taza",     descripcion: "Todo gran imperio empieza con un grano.",          desbloqueado: false },
+    { id: "cien_clicks",     nombre: "🤙 Manos de barista", descripcion: "Tus dedos ya huelen a café.",                      desbloqueado: false },
+    { id: "mil_clicks",      nombre: "👆 Adicto al click",  descripcion: "El médico ha dicho que esto no es normal.",        desbloqueado: false },
+    { id: "primer_euro",     nombre: "💰 Primer euro",      descripcion: "El primer euro siempre sabe diferente.",           desbloqueado: false },
+    { id: "cincuenta_granos",nombre: "🌱 Semilla plantada", descripcion: "Tu puesto callejero empieza a tener forma.",       desbloqueado: false },
+    { id: "etapa_cafeteria", nombre: "🏪 Local propio",     descripcion: "Ya no eres un puesto. Eres un negocio.",           desbloqueado: false },
+    { id: "etapa_tostadora", nombre: "🔥 Tostador serio",   descripcion: "El aroma ya se huele desde la calle.",             desbloqueado: false },
+    { id: "etapa_fabrica",   nombre: "🏭 A escala",         descripcion: "Esto ya no es artesanal.",                         desbloqueado: false },
+    { id: "etapa_imperio",   nombre: "🌍 Conquistador",     descripcion: "El mundo necesita tu café.",                       desbloqueado: false },
+    { id: "primer_empleado", nombre: "👷 Primer empleado",  descripcion: "Ya no estás solo. Casi.",                          desbloqueado: false },
+    { id: "todas_autos",     nombre: "🤖 Sin manos",        descripcion: "Tu negocio funciona solo mientras duermes.",       desbloqueado: false },
+    { id: "diez_por_segundo",nombre: "⚡ Máquina",          descripcion: "La cafetera no descansa.",                         desbloqueado: false },
+    { id: "primer_revivir",  nombre: "🔄 Renacido",         descripcion: "Empezar de cero con más sabiduría.",               desbloqueado: false },
+    { id: "tres_revivires",  nombre: "💎 Veterano",         descripcion: "Cada reinicio te hace más fuerte.",                desbloqueado: false },
+];
+
+
 panel.addEventListener("click", manejarClickPanel);
 botonRevivir.addEventListener("click", revivir);
 accountButton.addEventListener("click", manejarClickCuenta);
@@ -308,6 +328,7 @@ function obtenerGranosPorClick() {
 
 function sumarPuntos() {
     coffee.granos += obtenerGranosPorClick();
+    totalClicks++;
     actualizarBotonesTienda();
     actualizarPantalla();
 }
@@ -409,10 +430,12 @@ function revivir() {
         });
 
         revivirPrecio *= 10;
+        totalRevivires++;
 
         renderTienda();
         actualizarPantalla();
         guardarPartida(true);
+        
     }
 }
 
@@ -531,6 +554,7 @@ function actualizarPantalla() {
 
     botonRevivir.textContent = `Precio: ${revivirPrecio} granos`;
     botonRevivir.disabled = coffee.granos < revivirPrecio;
+    comprobarLogros();
 }
 
 function renderTiendaSiDesbloqueaAlgo() {
@@ -618,7 +642,10 @@ function obtenerEstadoCompleto(){
         revivirPrecio,
         coffee,
         clickUpgrade,
-        automations
+        automations,
+        totalClicks,
+        totalRevivires,
+        logros
     };
     
 }
@@ -721,7 +748,60 @@ function cargarEstado(data){
             }
         });
     }
+    if(data.totalClicks) totalClicks = data.totalClicks;
+    if(data.totalRevivires) totalRevivires = data.totalRevivires;
+    if(data.logros && Array.isArray(data.logros)){
+        data.logros.forEach(savedLogro => {
+            const logro = logro.find(l => l.id === savedLogro.id);
+            if(logro) logro.desbloqueado = savedLogro.desbloqueado;
+        });
+    }
 
+}
+
+//----------------------------------------
+//    Logros
+//----------------------------------------
+
+function comprobarLogros(){
+    const produccionTotal = automations.reduce((total, auto) => total + auto.level * auto.potencia, 0);
+    const todasDesbloqueadas = automations.every(auto => auto.level > 0);
+    const etapaActual = obtenerEtapaActual();
+
+    const condiciones ={
+        primer_click:     totalClicks >= 1,
+        cien_clicks:      totalClicks >= 100,
+        mil_clicks:       totalClicks >= 1000,
+        primer_euro:      dinero >= 1,
+        cincuenta_granos: coffee.granos >= 50,
+        etapa_cafeteria:  etapaActual.nombre === "Cafetería local",
+        etapa_tostadora:  etapaActual.nombre === "Tostadora artesanal",
+        etapa_fabrica:    etapaActual.nombre === "Fábrica regional",
+        etapa_imperio:    etapaActual.nombre === "Imperio cafetero",
+        primer_empleado:  automations[0].level >= 1,
+        todas_autos:      todasDesbloqueadas,
+        diez_por_segundo: produccionTotal >= 10,
+        primer_revivir:   totalRevivires >= 1,
+        tres_revivires:   totalRevivires >= 3,
+    };
+    logros.forEach(logro => {
+        if(!logro.desbloqueado && condiciones[logro.id]){
+            logro.desbloqueado = true;
+            mostrarPopupLogo(logro);
+            guardarPartida();
+        }
+    });
+}
+
+function mostrarPopupLogo(logro){
+    const toast = document.getElementById("logroToast");
+    document.getElementById("logroNombre").textContent = " 🏆 " + logro.nombre;
+    document.getElementById("logroDesc").textContent = logro.descripcion;
+
+    toast.classList.add("show");
+    setTimeout(()=>{
+        toast.classList.remove("show");
+    }, 3500);
 }
 
 
