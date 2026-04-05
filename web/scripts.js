@@ -1,3 +1,8 @@
+// ============================================================
+// CONFIGURACIÓN Y CONSTANTES
+// ============================================================
+
+
 const VERSION = "0.0.1";
 
 
@@ -29,7 +34,9 @@ const supabaseClient = HAS_SUPABASE_CONFIG
 let currentSession = null;
 
 
-
+// ============================================================
+// DATOS DEL JUEGO (etapas, upgrades, automatizaciones, logros)
+// ============================================================
 
 let dinero = 0;
 let revivirPrecio = 1000;
@@ -193,6 +200,10 @@ setInterval(generarGranosAutomaticos, 1000);
 setInterval(ganarDinero, 1000);
 setInterval(() => guardarPartida(false), 15000);
 
+// ============================================================
+// INICIALIZACIÓN
+// ============================================================
+
 async function iniciarJuego() {
     await cargarPartida();
     renderTienda();
@@ -240,6 +251,8 @@ btnEnviarMagicLink.addEventListener("click", async () => {
     }
 });
 
+
+
 // Detector de sesión — se dispara cuando el jugador hace click en el magic link
 if (supabaseClient) {
     supabaseClient.auth.onAuthStateChange(async (event, session) => {
@@ -259,6 +272,10 @@ if (supabaseClient) {
         }
     });
 }
+
+// ============================================================
+// AUTENTICACIÓN
+// ============================================================
 
 async function sincronizarSesionActual() {
     if (!supabaseClient) {
@@ -345,6 +362,10 @@ async function manejarClickCuenta() {
     actualizarBotonCuenta();
 }
 
+// ============================================================
+// LÓGICA DEL JUEGO
+// ============================================================
+
 function manejarClickPanel(event) {
     sumarPuntos();
     animarPanel();
@@ -417,7 +438,9 @@ function obtenerSiguienteEtapa() {
     return null;
 }
 
-
+// ============================================================
+// TIENDA Y RENDER
+// ============================================================
 
 function comprarMejoraClick() {
     if (dinero >= clickUpgrade.precioDinero && coffee.granos >= clickUpgrade.precioGranos) {
@@ -646,16 +669,6 @@ function actualizarPantalla() {
     comprobarLogros();
 }
 
-function renderTiendaSiDesbloqueaAlgo() {
-    const visiblesAntes = document.querySelectorAll(".auto-buy-btn, .secret-card").length;
-    renderTienda();
-    const visiblesDespues = document.querySelectorAll(".auto-buy-btn, .secret-card").length;
-
-    if (visiblesAntes !== visiblesDespues) {
-        actualizarPantalla();
-    }
-}
-
 function animarPanel() {
     panel.classList.remove("panel-pressed");
     void panel.offsetWidth;
@@ -682,9 +695,9 @@ function mostrarTextoFlotante(event, texto) {
     }, 600);
 }
 
-//------------------------------------------------------
-// Logica para guardar y cargar la partida 
-//-----------------------------------------------------
+// ============================================================
+// GUARDADO Y CARGA
+// ============================================================
 
 
 async function enviarMagicLink(email) {
@@ -855,9 +868,9 @@ function cargarEstado(data){
 
 }
 
-//----------------------------------------
-//    Logros
-//----------------------------------------
+// ============================================================
+// LOGROS
+// ============================================================
 
 function comprobarLogros(){
     const produccionTotal = automations.reduce((total, auto) => total + auto.level * auto.potencia, 0);
@@ -902,26 +915,26 @@ function mostrarPopupLogo(logro){
 
 
 
-//-----------------------------------------
-//Formulario
-//-----------------------------------------
+// ============================================================
+// FEEDBACK
+// ============================================================
 
-console.log("1");
+
 
 if (feedbackForm) {
-    console.log("2");
+    
     feedbackForm.addEventListener("submit", async (e) => {
-        console.log("3");
+        
         e.preventDefault();
 
-        console.log("4");
+        
         const payload = {
             usuario: document.getElementById("feedbackUsuario").value.trim() || null,
             mensaje: document.getElementById("feedbackMensaje").value.trim(),
             version: VERSION
         };
         
-        console.log("5");
+        
 try {
     if (!supabaseClient) {
         alert("El feedback no esta disponible en este entorno.");
@@ -932,7 +945,7 @@ try {
         .from("feedback")
         .insert(payload, { returning: 'minimal' });
     
-    console.log("6 - error:", error);
+    
 
     const modal = bootstrap.Modal.getInstance(
         document.getElementById("feedbackModal")
@@ -949,6 +962,6 @@ try {
 } catch (err) {
     console.error("Error inesperado en el insert:", err);
 }
-console.log("7");
+
     });
 }
