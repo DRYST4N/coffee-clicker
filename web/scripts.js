@@ -155,6 +155,35 @@ const logros = [
     { id: "tres_revivires",  nombre: "💎 Veterano",         descripcion: "Cada reinicio te hace más fuerte.",                desbloqueado: false },
 ];
 
+const upgrades = [
+    // Puesto callejero
+    { id: "u01", nombre: "Manos entrenadas",      descripcion: "Llevas tanto tiempo moliendo que ya no sientes los dedos.",  tipo: "click",     bonus: 0.5,  desbloqueo: 0,     comprado: false, precio: { dinero: 25,    granos: 25 } },
+    { id: "u02", nombre: "Café de termos",         descripcion: "El termo misterioso que nadie sabe cuándo se llenó.",        tipo: "click",     bonus: 1,    desbloqueo: 0,     comprado: false, precio: { dinero: 60,    granos: 50 } },
+    { id: "u03", nombre: "Vaso de cartón premium", descripcion: "Con tapa y todo. Eres un profesional.",                      tipo: "produccion",bonus: 1.5,  desbloqueo: 0,     comprado: false, precio: { dinero: 100,   granos: 80 } },
+    // Cafetería local
+    { id: "u04", nombre: "Máquina espresso",       descripcion: "Botón gordo. Ruido ensordecedor. Café perfecto.",            tipo: "click",     bonus: 2,    desbloqueo: 50,    comprado: false, precio: { dinero: 200,   granos: 150 } },
+    { id: "u05", nombre: "Barista contratado",     descripcion: "Sabe hacer corazones en el café. Tú no.",                    tipo: "produccion",bonus: 2,    desbloqueo: 50,    comprado: false, precio: { dinero: 350,   granos: 200 } },
+    { id: "u06", nombre: "WiFi de pago",           descripcion: "La gente se queda más. El café se vende solo.",              tipo: "ingresos",  bonus: 1.5,  desbloqueo: 50,    comprado: false, precio: { dinero: 500,   granos: 300 } },
+    // Tostadora artesanal
+    { id: "u07", nombre: "Granos de origen",       descripcion: "Etiopía, Colombia, Kenia. Suena caro, lo es.",               tipo: "click",     bonus: 3,    desbloqueo: 250,   comprado: false, precio: { dinero: 800,   granos: 500 } },
+    { id: "u08", nombre: "Tostado lento",          descripcion: "72 horas de tostado. Vale la pena, dicen.",                  tipo: "produccion",bonus: 2.5,  desbloqueo: 250,   comprado: false, precio: { dinero: 1200,  granos: 700 } },
+    { id: "u09", nombre: "Bolsas con válvula",     descripcion: "La válvula que nadie entiende pero todos quieren.",          tipo: "ingresos",  bonus: 1.75, desbloqueo: 250,   comprado: false, precio: { dinero: 1800,  granos: 900 } },
+    // Fábrica regional
+    { id: "u10", nombre: "Línea de envasado",      descripcion: "La cinta transportadora hace el trabajo sucio.",             tipo: "click",     bonus: 5,    desbloqueo: 1000,  comprado: false, precio: { dinero: 3000,  granos: 1500 } },
+    { id: "u11", nombre: "Control de calidad",     descripcion: "El tipo que prueba café todo el día. El mejor trabajo.",     tipo: "produccion",bonus: 3,    desbloqueo: 1000,  comprado: false, precio: { dinero: 5000,  granos: 2000 } },
+    { id: "u12", nombre: "Distribución regional",  descripcion: "Tu café llega a provincias. Eres famoso en Albacete.",       tipo: "ingresos",  bonus: 2,    desbloqueo: 1000,  comprado: false, precio: { dinero: 7000,  granos: 3000 } },
+    // Franquicia nacional
+    { id: "u13", nombre: "App de fidelización",    descripcion: "Puntos, sellos, recompensas. La gente vuelve.",              tipo: "click",     bonus: 8,    desbloqueo: 5000,  comprado: false, precio: { dinero: 12000, granos: 5000 } },
+    { id: "u14", nombre: "Campaña de TV",          descripcion: "Saliste en la tele. Tu madre está orgullosa.",               tipo: "produccion",bonus: 4,    desbloqueo: 5000,  comprado: false, precio: { dinero: 18000, granos: 7000 } },
+    { id: "u15", nombre: "Licencia de franquicia", descripcion: "Otros pagan por usar tu nombre. Esto es el poder.",          tipo: "ingresos",  bonus: 2.5,  desbloqueo: 5000,  comprado: false, precio: { dinero: 25000, granos: 9000 } },
+    // Imperio cafetero
+    { id: "u16", nombre: "IA de tostado",          descripcion: "El algoritmo sabe qué café quieres antes que tú.",           tipo: "click",     bonus: 15,   desbloqueo: 20000, comprado: false, precio: { dinero: 40000, granos: 15000 } },
+    { id: "u17", nombre: "Flota de drones",        descripcion: "Entrega en 10 minutos. El piloto cobra poco.",               tipo: "produccion",bonus: 5,    desbloqueo: 20000, comprado: false, precio: { dinero: 60000, granos: 20000 } },
+    { id: "u18", nombre: "Bolsa en el IBEX",       descripcion: "Coffee Clicker S.A. cotiza en bolsa. Papi está en el IBEX.", tipo: "ingresos",  bonus: 3,    desbloqueo: 20000, comprado: false, precio: { dinero: 80000, granos: 25000 } },
+    { id: "u19", nombre: "Satélite propio",        descripcion: "Para qué, exactamente. Pero lo tienes.",                     tipo: "produccion",bonus: 6,    desbloqueo: 20000, comprado: false, precio: { dinero: 100000,granos: 30000 } },
+    { id: "u20", nombre: "Café en el espacio",     descripcion: "La NASA es cliente. El astronauta pide con leche de avena.", tipo: "click",     bonus: 25,   desbloqueo: 20000, comprado: false, precio: { dinero: 120000,granos: 40000 } },
+];
+
 
 panel.addEventListener("click", manejarClickPanel);
 botonRevivir.addEventListener("click", revivir);
@@ -323,7 +352,22 @@ function manejarClickPanel(event) {
 }
 
 function obtenerGranosPorClick() {
-    return clickUpgrade.potenciaBase + (clickUpgrade.bonusPorNivel * clickUpgrade.level);
+    const baseClick = upgrades
+        .filter(u => u.comprado && u.tipo === "click")
+        .reduce((total, u) => total + u.bonus, 1);
+    return baseClick + (clickUpgrade.bonusPorNivel * clickUpgrade.level);
+}
+
+function obtenerMultiplicadorProduccion(){
+    return upgrades
+        .filter(u => u.comprado && u.tipo === "produccion")
+        .reduce((total, u) => total * u.bonus, 1);
+}
+
+function obtenerMultiplicadorIngresos(){
+    return upgrades
+        .filter(u => u.comprado && u.tipo === "ingresos")
+        .reduce((total, u) => total * u.bonus, 1);
 }
 
 function sumarPuntos() {
@@ -340,13 +384,13 @@ function generarGranosAutomaticos() {
         total += auto.level * auto.potencia;
     }
 
-    coffee.granos += total;
+    coffee.granos += total * obtenerMultiplicadorProduccion();
     actualizarBotonesTienda();
     actualizarPantalla();
 }
 
 function ganarDinero() {
-    dinero += coffee.valor * coffee.granos;
+    dinero += coffee.valor * coffee.granos * obtenerMultiplicadorIngresos();
     actualizarBotonesTienda();
     actualizarPantalla();
 }
@@ -429,6 +473,8 @@ function revivir() {
             auto.precioGranos = auto.precioGranosBase;
         });
 
+        upgrades.forEach(u => u.comprado = false);
+
         revivirPrecio *= 10;
         totalRevivires++;
 
@@ -449,27 +495,63 @@ function puedeComprarAuto(auto) {
            coffee.granos >= auto.precioGranos;
 }
 
+function comprarUpgrade(id){
+    const upgrade = upgrades.find(u => u.id === id);
+    if(!upgrade || upgrade.comprado) return;
+
+    if(dinero >= upgrade.precio.dinero && coffee.granos >= upgrade.precio.granos){
+        dinero -= upgrade.precio.dinero;
+        coffee.granos -= upgrade.precio.granos;
+        upgrade.comprado = true;
+
+        renderTienda();
+        actualizarPantalla();
+        guardarPartida();
+    }
+
+}
+
 function automatizacionDesbloqueada(index) {
     if (index === 0) return true;
     return automations[index - 1].level > 0;
 }
 
 function renderTienda() {
-    const upgradeDisponible = puedeComprarClickUpgrade();
+    const upgradesVisibles = upgrades.filter(u => !u.comprado && coffee.granos >= u.desbloqueo);
+    const upgradesDisponibles = upgrades.filter(u => !u.comprado && coffee.granos < u.desbloqueo).slice(0, 1);
 
-    upgradeContainer.innerHTML = `
-        <div class="shop-card">
-            <div class="card-title-pixel">${clickUpgrade.nombre}</div>
-            <div class="card-subtext">${clickUpgrade.descripcion}</div>
-            <button 
-                id="btnClickUpgrade" 
-                class="pixel-btn mt-3"
-                ${upgradeDisponible ? "" : "disabled"}
-            >
-                Nivel ${clickUpgrade.level} | ${clickUpgrade.precioDinero}€ | ${clickUpgrade.precioGranos} granos
-            </button>
-        </div>
-    `;
+    upgradeContainer.innerHTML = [...upgradesVisibles, ...upgradesDisponibles].map(upgrade => {
+        const disponible = dinero >= upgrade.precio.dinero && coffee.granos >= upgrade.precio.granos;
+        const bloqueado = coffee.granos < upgrade.desbloqueo;
+
+        if (bloqueado) {
+            return `
+                <div class="shop-card secret-card">
+                    <div class="card-title-pixel">???</div>
+                    <div class="card-subtext">Sigue creciendo para desbloquear esta mejora.</div>
+                    <button class="pixel-btn mt-3" disabled>BLOQUEADA</button>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="shop-card">
+                <div class="card-title-pixel">${upgrade.nombre}</div>
+                <div class="card-subtext">${upgrade.descripcion}</div>
+                <button
+                    class="pixel-btn mt-3 upgrade-buy-btn"
+                    data-id="${upgrade.id}"
+                    ${disponible ? "" : "disabled"}
+                >
+                    ${upgrade.precio.dinero}€ | ${upgrade.precio.granos} granos
+                </button>
+            </div>
+        `;
+    }).join("");
+
+    document.querySelectorAll(".upgrade-buy-btn").forEach(btn => {
+        btn.addEventListener("click", () => comprarUpgrade(btn.dataset.id));
+    });
 
     automationContainer.innerHTML = automations.map((auto, index) => {
         const desbloqueada = automatizacionDesbloqueada(index);
@@ -523,14 +605,21 @@ function renderTienda() {
 
 function actualizarBotonesTienda(){
     const btnClickUpgrade = document.getElementById("btnClickUpgrade");
+
     if (btnClickUpgrade){
         btnClickUpgrade.disabled = !puedeComprarClickUpgrade();
     }
+
     document.querySelectorAll(".auto-buy-btn").forEach(btn =>{
         const auto = automations.find(a=> a.id === btn.dataset.id);
         if(auto){
             btn.disabled = !puedeComprarAuto(auto);
         }
+    });
+
+    document.querySelectorAll(".upgrade-buy-btn").forEach(btn => {
+        const upgrade = upgrades.find(u => u.id === btn.dataset.id);
+        if(upgrade) btn.disabled = !(dinero >= upgrade.precio.dinero && coffee.granos >= upgrade.precio.granos);
     });
 }
 
@@ -643,6 +732,7 @@ function obtenerEstadoCompleto(){
         coffee,
         clickUpgrade,
         automations,
+        upgrades,
         totalClicks,
         totalRevivires,
         logros
@@ -752,9 +842,15 @@ function cargarEstado(data){
     if(data.totalRevivires) totalRevivires = data.totalRevivires;
     if(data.logros && Array.isArray(data.logros)){
         data.logros.forEach(savedLogro => {
-            const logro = logro.find(l => l.id === savedLogro.id);
+            const logro = logros.find(l => l.id === savedLogro.id);
             if(logro) logro.desbloqueado = savedLogro.desbloqueado;
         });
+    }
+    if(data.upgrades && Array.isArray(data.upgrades)){
+        data.upgrades.forEach(savedUpgrade => {
+            const upgrade = upgrades.find(u => u.id === savedUpgrade.id);
+            if(upgrade) upgrade.comprado = savedUpgrade.comprado;
+        })
     }
 
 }
